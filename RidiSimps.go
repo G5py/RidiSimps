@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"mime/multipart"
+	"net/http"
 )
 
 func loginData() (id string, password string) {
@@ -15,10 +16,12 @@ func loginData() (id string, password string) {
 	return id, password
 }
 
-func login(id string, password string) {
+func login(id string, password string) (*http.Response, error) {
 
 	// 로그인 request의 body를 작성하는 과정.
 	// POST method, content-type : multipart/form-data
+
+	loginUri := "https://ridibooks.com/account/action/login"
 
 	fieldNames := []string{ // 리디북스 로그인 request의 body field들.
 		"user_id",
@@ -42,13 +45,15 @@ func login(id string, password string) {
 
 	w.Close()
 
+	return http.Post(loginUri, "multipart/form-data", &body)
 }
 
 func main() {
-	var id string
-	var password string
+	id, password := loginData()
 
-	id, password = loginData()
-	login(id, password)
+	resp, err := login(id, password)
+	if err != nil {
+		fmt.Println(err, ": login failed")
+	}
 
 }
