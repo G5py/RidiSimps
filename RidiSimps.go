@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"strconv"
 
@@ -63,10 +64,17 @@ func main() {
 	if err != nil {
 		fmt.Println(err, ": login failed")
 		panic(err)
+	} else {
+		fmt.Println("로그인 성공")
 	}
 
 	// 반복적인 get 호출을 위해 client 선언.
-	client := &http.Client{}
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		fmt.Println(err, ": cookiejar.new error")
+	}
+	client := &http.Client{Jar: jar}
+
 	ridiUrl, err := url.Parse("https://ridibooks.com")
 	if err != nil {
 		fmt.Println(err, ": url parse error")
@@ -76,10 +84,13 @@ func main() {
 	// 로그인 세션을 유지하기 위해 client에 쿠키를 설정.
 	client.Jar.SetCookies(ridiUrl, loginResp.Cookies())
 	loginResp.Body.Close()
+	fmt.Println("쿠키 설정 완료")
 
 	historyUri := "https://ridibooks.com/order/history?page="
 
 	const maxTries int = 100
+	totalPrice := 0
+
 	for i := 1; i <= maxTries; i++ {
 		historyResp, err := client.Get(historyUri + strconv.Itoa(i))
 		if err != nil {
@@ -93,11 +104,16 @@ func main() {
 			panic(err)
 		}
 
+		buyHistory := html.Find("span.museo_sans")
+		if len(buyHistory.Nodes) == 0 {
+			break
+		}
 
-		buyHistoryTable := html.Find("#page_buy_history>table>tbody")
-		if buyHistoryTable.
-		 := buyHistoryTable.Find("tr.detail_link js_rui_detail_link")
-
+		for _, node := range buyHistory.Nodes {
+			price, _ := strconv.Atoi(node.Data)
+			totalPrice += price
+		}
 	}
 
+	fmt.Printf("총 구매 금액 : %d\n", totalPrice)
 }
