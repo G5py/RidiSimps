@@ -11,6 +11,15 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+func loginData() (id string, password string) {
+	fmt.Print("ID : ")
+	fmt.Scanln(&id)
+	fmt.Print("PASSWORD : ")
+	fmt.Scanln(&password)
+
+	return
+}
+
 func loginReq(id string, pw string) *http.Request {
 	var body bytes.Buffer
 	w := multipart.NewWriter(&body)
