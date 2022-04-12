@@ -3,13 +3,17 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
+	"os"
 	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
 )
+
+var logger *log.Logger
 
 func loginData() (id string, password string) {
 	fmt.Print("ID : ")
@@ -45,7 +49,7 @@ func loginReq(id string, pw string) *http.Request {
 
 	req, err := http.NewRequest("POST", "https://ridibooks.com/account/action/login", &body)
 	if err != nil {
-		// err handling
+		logger.Panic("loginReq() : failed to http.NewRequest() for the login-POST-request.")
 	}
 	return req
 }
@@ -58,7 +62,7 @@ func getCost(client *http.Client) int {
 	for i := 1; i <= maxTries; i++ {
 		resp, err := client.Get(uri())
 		if err != nil {
-			// err handling
+			logger.Panic("gotCost() : failed to Get a buy-history page " + strconv.Itoa(i))
 		}
 
 		cost := sumBuyTable(resp)
@@ -87,6 +91,9 @@ func sumBuyTable(resp *http.Response) int {
 	sels := parseResp(resp)
 	sels.Each(func(i int, s *goquery.Selection) {
 		price, err := strconv.Atoi(s.Text())
+		if err != nil {
+			logger.Panic("sumBuyTable() : failed to Atoi().")
+		}
 		cost += price
 	})
 
@@ -96,22 +103,23 @@ func sumBuyTable(resp *http.Response) int {
 func parseResp(resp *http.Response) *goquery.Selection {
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		// err handling
+		logger.Panic("parseResp() : error occured from goquery.NewDocumentFromReader().")
 	}
 
 	return doc.Find("span.museo_sans")
 }
 
 func main() {
+	logger = log.New(os.Stdout, "Ridisimps : ", log.LstdFlags)
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		// err handling
+		logger.Panic("main() : failed to New cookijar.")
 	}
 	client := &http.Client{Jar: jar}
 
 	loginResp, err := client.Do(loginReq(loginData()))
 	if err != nil {
-		// err handling
+		logger.Panic("main() : failed to Do login request.")
 	}
 	loginResp.Body.Close()
 
