@@ -9,6 +9,7 @@ import (
 	"net/http/cookiejar"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -46,11 +47,12 @@ func loginReq(id string, pw string) *http.Request {
 	}
 
 	w.Close()
-
 	req, err := http.NewRequest("POST", "https://ridibooks.com/account/action/login", &body)
 	if err != nil {
 		logger.Panic("loginReq() : failed to http.NewRequest() for the login-POST-request.")
 	}
+	req.Header.Set("Content-Type", "multipart/form-data; boundary="+w.Boundary())
+
 	return req
 }
 
@@ -90,7 +92,7 @@ func sumBuyTable(resp *http.Response) int {
 	cost := 0
 	sels := parseResp(resp)
 	sels.Each(func(i int, s *goquery.Selection) {
-		price, err := strconv.Atoi(s.Text())
+		price, err := strconv.Atoi(strings.ReplaceAll(s.Text(), ",", ""))
 		if err != nil {
 			logger.Panic("sumBuyTable() : failed to Atoi().")
 		}
@@ -106,7 +108,8 @@ func parseResp(resp *http.Response) *goquery.Selection {
 		logger.Panic("parseResp() : error occured from goquery.NewDocumentFromReader().")
 	}
 
-	return doc.Find("span.museo_sans")
+	sels := doc.Find("#page_buy_history") // #page_buy_history table tbody tr
+	return sels.Find("td.main_value span")
 }
 
 func main() {
@@ -121,7 +124,7 @@ func main() {
 	if err != nil {
 		logger.Panic("main() : failed to Do login request.")
 	}
-	loginResp.Body.Close()
+	defer loginResp.Body.Close()
 
 	fmt.Println("총 결제 금액 : " + strconv.Itoa(getCost(client)))
 }
