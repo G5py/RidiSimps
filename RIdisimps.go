@@ -59,7 +59,7 @@ func loginReq(id string, pw string) *http.Request {
 func getCost(client *http.Client) int {
 	uri := getUri()
 
-	const maxTries = 5
+	const maxTries = 20
 	totalCost := 0
 	for i := 1; i <= maxTries; i++ {
 		resp, err := client.Get(uri())
@@ -85,7 +85,6 @@ func getUri() func() string {
 		i++
 		return uri + strconv.Itoa(i)
 	}
-
 }
 
 func sumBuyTable(resp *http.Response) int {
