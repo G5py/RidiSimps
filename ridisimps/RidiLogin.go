@@ -14,8 +14,12 @@ type LoginData struct {
 }
 
 func Login() *http.Client {
+	return loginWithLoginData(getLoginDataByConsole())
+}
+
+func loginWithLoginData(loginData LoginData) *http.Client {
 	client := makeClient()
-	client.Do(getLoginDataByConsole().toLoginRequest())
+	client.Do(loginData.toLoginRequest())
 	return client
 }
 
