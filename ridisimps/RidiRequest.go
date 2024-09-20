@@ -8,14 +8,14 @@ import (
 func RequestPurchaseHistories(client *http.Client) []*http.Response {
 	const maxTries = 20
 	nexturi := makeUriGenerator()
-	resonseCollection := make([]*http.Response, 0, 20)
+	responseCollection := make([]*http.Response, 0, 20)
 
 	for i := 0; i < maxTries; i++ {
 		response, _ := client.Get(nexturi())
-		resonseCollection = append(resonseCollection, response)
+		responseCollection = append(responseCollection, response)
 	}
 
-	return resonseCollection
+	return responseCollection
 }
 
 func RequestPurchaseHistoriesAndParse(client *http.Client) []*http.Response {
