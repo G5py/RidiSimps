@@ -1,4 +1,4 @@
-module github.com/G5py/RidiSimps
+module RidiSimps
 
 go 1.17
 
