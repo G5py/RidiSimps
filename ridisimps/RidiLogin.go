@@ -13,7 +13,7 @@ type LoginData struct {
 	Pw string
 }
 
-func Login() *http.Client {
+func LoginByConsole() *http.Client {
 	return LoginWithLoginData(getLoginDataByConsole())
 }
 
